@@ -1,3 +1,16 @@
-#startButton {
+.btn {
     background-color: #3f2962;
+    color: white;
+}
+.btn:hover, .btn:focus, .btn:active, .btn.active, .open>.dropdown-toggle.btn {
+    color: #fff;
+    background-color: #5f2f95;
+    border-color: #071562; /*set the color you want here*/
+}
+.row {
+    justify-content: center;
+}
+
+.openingElement {
+    text-align: center;
 }

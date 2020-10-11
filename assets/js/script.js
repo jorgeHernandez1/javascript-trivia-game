@@ -1,22 +1,60 @@
-var startBtn = document.querySelector("#startButton");
 var timeLeftEle = document.querySelector("#timeLeft");
 var interval;
+var questions = getQuestions();
+var answers = getAnswers();
+var questionRow;
+var answersRow;
+var resultRow;
 
 function init() {
+  //clean up intro page
+  emtptyIntro();
+  //start game
+  //print random question and possible answers to screen
+  printRandomQuestion();
   //initiates timer
   startTimer();
+}
+
+function emtptyIntro() {
   //clear intro page elements
   var introSection = document.querySelectorAll(".openingElement");
   introSection.forEach((ele) => {
     ele.remove();
   });
 
-  //load divs that we will use to display questions and rows
-  
-  var questions = getQuestions();
-  var answers = getAnswers();
+  //add ids to divs that we will use to display questions, answers and results
+  var rows = document.getElementsByClassName("row");
+  rows.item(0).id = "questionRow";
+  rows.item(1).id = "answersRow";
+  rows.item(2).id = "resultRow";
+  //add isd to indentify rows
+  questionRow = $("#questionRow div");
+  answersRow = $("#answersRow div");  
+  resultRow = $("#resultRow div");
+  // add on click to asnwers row
+  answersRow.on("click",answerClick)
+}
 
-  
+function printRandomQuestion() {
+  //set random question global vars
+  var randomQuestion;
+  var question;
+  var possibleAnswers;
+
+  randomQuestion = getRandomQuestion();
+  question = randomQuestion.question;
+  possibleAnswers = randomQuestion.answers;
+  //print question
+  questionRow.append("<h1>" + question + "</h1>");
+  //print buttons/possible answers
+
+  for (let index = 0; index < possibleAnswers.length; index++) {
+    const answer = possibleAnswers[index];
+    var btn = $("<div><a>" + answer + "</a></div></br>");
+    btn.addClass("btn col-xl-auto my-1");
+    answersRow.append(btn);
+  }
 }
 
 function startTimer() {
@@ -32,6 +70,22 @@ function startTimer() {
       gameOver();
     }
   }, 1000);
+}
+
+function getRandomQuestion(question, answers) {
+  //get random number to use as index that is the size of our current questions map
+  var rand = Math.floor(Math.random() * questions.size);
+  // The key at rand index
+  question = Array.from(questions.keys())[rand];
+  // The value of the item at rand index
+  answers = questions.get(question);
+  //remove used question
+  questions.delete(question);
+
+  return {
+    question: question,
+    answers: answers,
+  };
 }
 
 function getQuestions() {
@@ -57,12 +111,12 @@ function getQuestions() {
 
   dict.set(
     "Which characters can be used to create a comment in a javascript file?",
-    ["<!---->", "//", "\\", "??"]
+    ["&lt;!----&gt;", "//", "\\\\", "??"]
   );
 
   dict.set(
     "Which characters can be used to create a comment in an html file?",
-    ["<!---->", "//", "\\", "??"]
+    ["&lt;!----&gt;", "//", "\\\\", "??"]
   );
 
   dict.set(
@@ -109,15 +163,19 @@ function getAnswers() {
   );
 
   dict.set(
-    "The functions toLowerCase(), toUpperCase(), and trim() modify which of the follwing data types?",
-    ["setInterval();", "setTimeout();", "runOnInterval();", "runFunction();"]
-  );
-
-  dict.set(
     "The functions toLowerCase(), toUpperCase(), and trim() modify which of the following data types?",
     "String"
   );
   return dict;
+}
+
+function answerClick(event) {
+  //checks to make sure a button was pushed
+  if (event.target.matches(".btn") || event.target.parent.matches("a")) {
+    console.log("answer choice");
+  } else {
+    console.log("not answer choice");
+  }
 }
 
 function gameOver() {
@@ -126,4 +184,4 @@ function gameOver() {
   clearInterval(interval);
 }
 
-startBtn.addEventListener("click", init);
+$("#startButton").on("click", init);

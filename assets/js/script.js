@@ -51,8 +51,8 @@ function printRandomQuestion() {
 
   for (let index = 0; index < possibleAnswers.length; index++) {
     const answer = possibleAnswers[index];
-    var btn = $("<div><a>" + answer + "</a></div></br>");
-    btn.addClass("btn col-xl-auto my-1");
+    var btn = $("<a>" + answer + "</a></br>");
+    btn.addClass("btn my-1");
     answersRow.append(btn);
   }
 }
@@ -171,7 +171,7 @@ function getAnswers() {
 
 function answerClick(event) {
   //checks to make sure a button was pushed
-  if (event.target.matches(".btn") || event.target.parent.matches("a")) {
+  if (event.target.matches(".btn")) {
     console.log("answer choice");
   } else {
     console.log("not answer choice");

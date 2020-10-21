@@ -1,14 +1,16 @@
-var timeLeftEle = document.querySelector("#timeLeft");
+var timeLeftEle = $("#timeLeft");
+//timer interval
 var interval;
-var questions = getQuestions();
-var answers = getAnswers();
+//page element containers
 var questionRow;
 var answersRow;
 var resultRow;
+var questions = getQuestions();
+var correctAnswers;
 
 function init() {
   //clean up intro page
-  emtptyIntro();
+  clearMainContent();
   //start game
   //print random question and possible answers to screen
   printRandomQuestion();
@@ -16,7 +18,7 @@ function init() {
   startTimer();
 }
 
-function emtptyIntro() {
+function clearMainContent() {
   //clear intro page elements
   var introSection = document.querySelectorAll(".openingElement");
   introSection.forEach((ele) => {
@@ -30,10 +32,11 @@ function emtptyIntro() {
   rows.item(2).id = "resultRow";
   //add isd to indentify rows
   questionRow = $("#questionRow div");
-  answersRow = $("#answersRow div");  
+  answersRow = $("#answersRow div");
   resultRow = $("#resultRow div");
-  // add on click to asnwers row
-  answersRow.on("click",answerClick)
+
+  // add on click to answers
+  $(document).on("click", ".answer", answerClick);
 }
 
 function printRandomQuestion() {
@@ -42,18 +45,29 @@ function printRandomQuestion() {
   var question;
   var possibleAnswers;
 
-  randomQuestion = getRandomQuestion();
-  question = randomQuestion.question;
-  possibleAnswers = randomQuestion.answers;
-  //print question
-  questionRow.append("<h1>" + question + "</h1>");
-  //print buttons/possible answers
+  questionRow.empty();
+  answersRow.empty();
 
-  for (let index = 0; index < possibleAnswers.length; index++) {
-    const answer = possibleAnswers[index];
-    var btn = $("<a>" + answer + "</a></br>");
-    btn.addClass("btn my-1");
-    answersRow.append(btn);
+  randomQuestion = getRandomQuestion();
+  //question and answer may not be set if end of questions is reached
+  try {
+    question = randomQuestion.question;
+    possibleAnswers = randomQuestion.answers;
+    //print question
+    questionRow.append("<h1>" + question + "</h1>");
+    //print buttons/possible answers
+
+    for (let index = 0; index < possibleAnswers.length; index++) {
+      const answer = possibleAnswers[index];
+      var btnDiv = $("<div>");
+      var btn = $("<a>" + answer + "</a>");
+      btn.addClass("btn my-1 answer");
+      btnDiv.append(btn);
+      btnDiv.append("<br>");
+      answersRow.append(btnDiv);
+    }
+  } catch (err) {
+    console.log("Game Over!")
   }
 }
 
@@ -61,11 +75,11 @@ function startTimer() {
   //starts timer at top right of screen and sets interval
   interval = setInterval(function () {
     //collect current time from UI and subtract 1 to set new value
-    var timeLeft = parseInt(timeLeftEle.textContent);
+    var timeLeft = parseInt(timeLeftEle.text());
     timeLeft--;
     //if timer runs out then game is over
     if (timeLeft >= 0) {
-      timeLeftEle.textContent = timeLeft;
+      timeLeftEle.text(timeLeft);
     } else {
       gameOver();
     }
@@ -73,19 +87,24 @@ function startTimer() {
 }
 
 function getRandomQuestion(question, answers) {
-  //get random number to use as index that is the size of our current questions map
-  var rand = Math.floor(Math.random() * questions.size);
-  // The key at rand index
-  question = Array.from(questions.keys())[rand];
-  // The value of the item at rand index
-  answers = questions.get(question);
-  //remove used question
-  questions.delete(question);
+  //checks to make sure we haven't ran out of wuestions in the public questions map
+  if (questions.size === 0) {
+    gameOver();
+  } else {
+    //get random number to use as index that is the size of our current questions map
+    var rand = Math.floor(Math.random() * questions.size);
+    // The key at rand index
+    question = Array.from(questions.keys())[rand];
+    // The value of the item at rand index
+    answers = questions.get(question);
+    //remove used question
+    questions.delete(question);
 
-  return {
-    question: question,
-    answers: answers,
-  };
+    return {
+      question: question,
+      answers: answers,
+    };
+  }
 }
 
 function getQuestions() {
@@ -169,12 +188,36 @@ function getAnswers() {
   return dict;
 }
 
-function answerClick(event) {
-  //checks to make sure a button was pushed
-  if (event.target.matches(".btn")) {
-    console.log("answer choice");
+function answerClick() {
+  //print new question
+  printRandomQuestion();
+  //display result of previos selection
+  var question = $("#questionRow").text().trim();
+  var selectedAnswer = $(this).text().trim();
+  var result = isCorrectAnswer(question, selectedAnswer);
+  //create result div
+  var resultDiv = $("<div>");
+  resultDiv.text(result);
+  //add styling classes
+  resultDiv.addClass("text-muted font-italic border-top");
+  //append to results row
+  resultRow.append(resultDiv);
+  //wait 2 seconds then clear result
+  setTimeout(function () {
+    resultRow.empty();
+  }, 2000);
+}
+
+function isCorrectAnswer(question, selectedAnswer) {
+  //pulls in answers map
+  var answers = getAnswers();
+  //checks to see if the returned answer for the provided question matches the
+  //user selectedAnswer
+  if (answers.get(question) === selectedAnswer) {
+    correctAnswers++;
+    return "Correct!";
   } else {
-    console.log("not answer choice");
+    return "Wrong!";
   }
 }
 
